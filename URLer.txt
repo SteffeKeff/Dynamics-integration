@@ -1,0 +1,10 @@
+Lista över alla marknadsföringar
+-----------------------------------
+Intressant: (ListName och, ListId och MemberCount)
+https://ungapped.crm4.dynamics.com/XRMServices/2011/OrganizationData.svc/ListSet
+
+
+Lista över specifik marknadsföring med medlemmar (från ListID)
+-----------------------------------
+Intressant: (m:properies > d:YomiFullName, d:EMailAddress1, d:MobilePhone)
+https://ungapped.crm4.dynamics.com/XRMServices/2011/OrganizationData.svc/ListSet(guid'd429b9dc-437e-e511-80ec-3863bb346bb8')/listcontact_association
