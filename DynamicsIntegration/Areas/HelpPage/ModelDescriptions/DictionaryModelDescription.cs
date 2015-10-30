@@ -1,4 +1,4 @@
-namespace WebApplication1.Areas.HelpPage.ModelDescriptions
+namespace DynamicsIntegration.Areas.HelpPage.ModelDescriptions
 {
     public class DictionaryModelDescription : KeyValuePairModelDescription
     {
