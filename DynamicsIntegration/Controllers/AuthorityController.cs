@@ -17,6 +17,7 @@
 using System;
 using System.ServiceModel;
 using System.ServiceModel.Description;
+using System.Collections;
 using System.Reflection;
 
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
@@ -54,14 +55,53 @@ namespace DynamicsIntegration.Controllers
 
         #endregion Class Level Members
 
-        #region How To Sample Code
-        /// <summary>
-        /// 
-        /// </summary>
-        public EntityCollection getSomething()
+        public EntityCollection getAllLists()
         {
-
             EntityCollection results = new EntityCollection();
+            QueryExpression query = new QueryExpression { EntityName = "list", ColumnSet = new ColumnSet("listname", "membercount", "listid", "modifiedon") };
+            OrganizationServiceProxy organizationServiceProxy = getOrganizationServiceProxy();
+
+            query.AddOrder("modifiedon", OrderType.Descending);
+            results = organizationServiceProxy.RetrieveMultiple(query);
+               
+            return results;
+        }
+
+        public ArrayList getContactsInList(string id)
+        {
+            ArrayList contacts = new ArrayList();
+            Guid listid;
+            EntityCollection results = new EntityCollection();
+            QueryExpression query = new QueryExpression { EntityName = "listmember", ColumnSet = new ColumnSet("listid", "entityid") };
+            OrganizationServiceProxy organizationServiceProxy = getOrganizationServiceProxy();
+
+            try
+            {
+                listid = new Guid(id);
+            }
+            catch(FormatException)
+            {
+                return contacts;
+            }
+
+            results = organizationServiceProxy.RetrieveMultiple(query);
+            
+            foreach (ListMember member in results.Entities)
+            {
+                if (member.ListId.Id == listid)
+                {
+                    Contact contact = organizationServiceProxy.Retrieve("contact", member.EntityId.Id, new ColumnSet(new string[] { "firstname", "lastname", "emailaddress1" })).ToEntity<Contact>();
+                    contacts.Add(contact);
+                }
+
+            }
+
+            return contacts;
+        }
+
+        public OrganizationServiceProxy getOrganizationServiceProxy()
+        {
+            OrganizationServiceProxy organizationServiceProxy = null;
 
             //<snippetAuthenticateWithNoHelp1>
             IServiceManagement<IDiscoveryService> serviceManagement =
@@ -90,7 +130,6 @@ namespace DynamicsIntegration.Controllers
             }
             //</snippetAuthenticateWithNoHelp1>
 
-
             if (!String.IsNullOrWhiteSpace(organizationUri))
             {
                 //<snippetAuthenticateWithNoHelp3>
@@ -102,61 +141,18 @@ namespace DynamicsIntegration.Controllers
                 AuthenticationCredentials credentials = GetCredentials(orgServiceManagement, endpointType);
 
                 // Get the organization service proxy.
-                using (OrganizationServiceProxy organizationProxy =
+                using (organizationServiceProxy =
                     GetProxy<IOrganizationService, OrganizationServiceProxy>(orgServiceManagement, credentials))
                 {
                     // This statement is required to enable early-bound type support.
-                    organizationProxy.EnableProxyTypes();
+                    organizationServiceProxy.EnableProxyTypes();
 
-                    // Now make an SDK call with the organization service proxy.
-                    // Display information about the logged on user.
-                    /*Guid userid = ((WhoAmIResponse)organizationProxy.Execute(
-                        new WhoAmIRequest())).UserId; */
-
-                    QueryExpression query = new QueryExpression { EntityName = "list", ColumnSet = new ColumnSet("listname", "membercount", "listid", "modifiedon") };
-                    query.AddOrder("modifiedon", OrderType.Descending);
-
-                    results = organizationProxy.RetrieveMultiple(query);
-                    //Microsoft.Crm.Services.Utility.
-                    /*foreach (List lista in results.Entities)
-                    {
-                        Console.WriteLine("Title: {0}", lista.ListName);
-                        Console.WriteLine("count: {0}", lista.MemberCount);
-                        Console.WriteLine("Id: {0}", lista.ListId);
-                        Console.WriteLine("ModifiedOn: {0}", lista.ModifiedOn);
-                    }*/
-                    Console.WriteLine("---------");
-                    /*string id = Console.ReadLine();
-                    Console.WriteLine("---------");
-
-                    Guid listid = new Guid(id);
-
-                    query = new QueryExpression { EntityName = "listmember", ColumnSet = new ColumnSet("listid", "entityid") };
-
-                    results = organizationProxy.RetrieveMultiple(query);
-
-                    int i = 0;
-                    foreach (ListMember member in results.Entities)
-                    {
-                        if (member.ListId.Id == listid)
-                        {
-                            Console.WriteLine(member.ListMemberId);
-                            Contact contact = organizationProxy.Retrieve("contact", member.EntityId.Id, new ColumnSet(new string[] { "firstname", "lastname", "emailaddress1" })).ToEntity<Contact>();
-                            Console.WriteLine("Firstname: {0}, Lastname: {1}, Email: {2}", contact.FirstName, contact.LastName, contact.EMailAddress1);
-                            i++;
-                        }
-
-                    }*/
-
-                    /*SystemUser systemUser = organizationProxy.Retrieve("systemuser", userid,
-                        new ColumnSet(new string[] { "firstname", "lastname" })).ToEntity<SystemUser>();
-                    Console.WriteLine("Logged on user is {0} {1}.",
-                        systemUser.FirstName, systemUser.LastName); */
                 }
-                //</snippetAuthenticateWithNoHelp3>
             }
-            return results;
+
+            return organizationServiceProxy;
         }
+
 
         //<snippetAuthenticateWithNoHelp2>
         /// <summary>
@@ -295,74 +291,7 @@ namespace DynamicsIntegration.Controllers
                 .GetConstructor(new Type[] { typeof(IServiceManagement<TService>), typeof(ClientCredentials) })
                 .Invoke(new object[] { serviceManagement, authCredentials.ClientCredentials });
         }
-        /// </snippetAuthenticateWithNoHelp4>
-
-        #endregion How To Sample Code
-
-        #region Main method
-
-        /// <summary>
-        /// Standard Main() method used by most SDK samples.
-        /// </summary>
-        /// <param name="args"></param>
-        static public void Main(string[] args)
-        {
-            try
-            {
-                AuthorityController app = new AuthorityController();
-                //app.Run();
-            }
-            catch (FaultException<Microsoft.Xrm.Sdk.OrganizationServiceFault> ex)
-            {
-                Console.WriteLine("The application terminated with an error.");
-                Console.WriteLine("Timestamp: {0}", ex.Detail.Timestamp);
-                Console.WriteLine("Code: {0}", ex.Detail.ErrorCode);
-                Console.WriteLine("Message: {0}", ex.Detail.Message);
-                Console.WriteLine("Trace: {0}", ex.Detail.TraceText);
-                Console.WriteLine("Inner Fault: {0}",
-                    null == ex.Detail.InnerFault ? "No Inner Fault" : "Has Inner Fault");
-            }
-            catch (System.TimeoutException ex)
-            {
-                Console.WriteLine("The application terminated with an error.");
-                Console.WriteLine("Message: {0}", ex.Message);
-                Console.WriteLine("Stack Trace: {0}", ex.StackTrace);
-                Console.WriteLine("Inner Fault: {0}",
-                    null == ex.InnerException.Message ? "No Inner Fault" : ex.InnerException.Message);
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine("The application terminated with an error.");
-                Console.WriteLine(ex.Message);
-
-                // Display the details of the inner exception.
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine(ex.InnerException.Message);
-
-                    FaultException<Microsoft.Xrm.Sdk.OrganizationServiceFault> fe = ex.InnerException
-                        as FaultException<Microsoft.Xrm.Sdk.OrganizationServiceFault>;
-                    if (fe != null)
-                    {
-                        Console.WriteLine("Timestamp: {0}", fe.Detail.Timestamp);
-                        Console.WriteLine("Code: {0}", fe.Detail.ErrorCode);
-                        Console.WriteLine("Message: {0}", fe.Detail.Message);
-                        Console.WriteLine("Trace: {0}", fe.Detail.TraceText);
-                        Console.WriteLine("Inner Fault: {0}",
-                            null == fe.Detail.InnerFault ? "No Inner Fault" : "Has Inner Fault");
-                    }
-                }
-            }
-            // Additional exceptions to catch: SecurityTokenValidationException, ExpiredSecurityTokenException,
-            // SecurityAccessDeniedException, MessageSecurityException, and SecurityNegotiationException.
-
-            finally
-            {
-                Console.WriteLine("Press <Enter> to exit.");
-                Console.ReadLine();
-            }
-        }
-        #endregion Main method
+        /// </snippetAuthenticateWithNoHelp4
     }
 }
 //</snippetAuthenticateWithNoHelp>

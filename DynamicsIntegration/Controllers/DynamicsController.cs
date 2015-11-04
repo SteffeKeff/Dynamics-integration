@@ -1,102 +1,75 @@
-﻿using System;
+﻿using DynamicsIntegration.Models;
+using Microsoft.Xrm.Sdk;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using RestSharp;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
-using RestSharp;
-using System.Diagnostics;
-using DynamicsIntegration.Models;
-using Microsoft.Xrm.Sdk;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Collections;
 
 namespace DynamicsIntegration.Controllers
 {
-    [RoutePrefix("Dynamics")]
+    [RoutePrefix("dynamics")]
     public class DynamicsController : ApiController
     {
-        [Route("ListSet")]
-        public IHttpActionResult GetListSets()
+        AuthorityController authorityController = new AuthorityController();
+
+        [Route("lists")]
+        public IHttpActionResult GetLists()
         {
-            // Connect to Dynamics
-            // Get views
+            EntityCollection lists = authorityController.getAllLists();
 
-            //var listSets = GetListSetsFromDynamics();
+            var responsObject = new JObject();
+            var jsonLists = new JArray();
 
-
-            //var modified = listSets.Select(v => new listSets
-            //{
-            //    ViewId = v.viewId,
-            //    Name = v.name
-            //};)
-
-            AuthorityController ac = new AuthorityController();
-            EntityCollection results = ac.getSomething();
-
-            var obj = new JObject();
-
-            //obj["One"] = "Value One";
-            //obj["Two"] = "Value Two";
-            //obj["Three"] = "Value Three";
-
-            var array = new JArray();
-
-            foreach (List lista in results.Entities)
+            foreach (List list in lists.Entities)
             {
-                var list = new JObject();
-                list["name"] = lista.ListName;
-                list["listid"] = lista.MemberCount;
-                list["membercount"] = lista.ListId;
-                list["modifiedon"] = lista.ModifiedOn;
-                /*
-                Console.WriteLine("Title: {0}", lista.ListName);
-                        Console.WriteLine("count: {0}", lista.MemberCount);
-                        Console.WriteLine("Id: {0}", lista.ListId);
-                        Console.WriteLine("ModifiedOn: {0}", lista.ModifiedOn);
-                        */
+                var jsonList = new JObject();
+                jsonList["name"] = list.ListName;
+                jsonList["listid"] = list.ListId;
+                jsonList["membercount"] = list.MemberCount;
+                jsonList["modifiedon"] = list.ModifiedOn;
 
-                array.Add(list);
+                jsonLists.Add(jsonList);
             }
 
-            obj["marketinglist"] = array;
+            responsObject["lists"] = jsonLists;
 
-            return Ok(obj);
-
-            //return Ok("hej");
+            return Ok(responsObject);
         }
 
-        public class View
+        [Route("lists/{id}")]
+        public IHttpActionResult GetSingleList(string id)
         {
-            Guid ViewId { get; set; }
+            ArrayList contacts = authorityController.getContactsInList(id);
 
-            string Name { get; set; }
-        }
+            var responsObject = new JObject();
+            var jsonContacts = new JArray();
 
-        private dynamic GetListSetsFromDynamics()
-        {
+            foreach (Contact contact in contacts)
+            {
+                var jsonContact = new JObject();
+                jsonContact["firstname"] = contact.FirstName;
+                jsonContact["lastname"] = contact.LastName;
+                jsonContact["email"] = contact.EMailAddress1;
 
-            var client = new RestClient("https://ungapped.crm4.dynamics.com");
-            // client.Authenticator = new HttpBasicAuthenticator(username, password);
-           
-            var request = new RestRequest("XRMServices/2011/OrganizationData.svc/ListSet", Method.GET);
-
-            //// easily add HTTP Headers
-            //request.AddHeader("header", "value");
-
-            // execute the request
-            var response = client.Execute(request).Content;
-            Debug.WriteLine(response);
-
-            // var content = response.First<Item> // raw content as string
-
-            return response;
-        }
-
-        /*[Route("Views/{view}")]
-        public dynamic GetData(string view)
-        {
-
-        }*/
+                jsonContacts.Add(jsonContact);
             }
+
+            if(contacts.Capacity == 0)
+            {
+                return NotFound();
+            }
+
+            responsObject["contacts"] = jsonContacts;
+
+            return Ok(responsObject);
         }
+
+    }
+}
