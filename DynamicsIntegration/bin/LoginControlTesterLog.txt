@@ -1,0 +1,56 @@
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : Created CrmConnectionManager 
+Microsoft.Xrm.Tooling.CrmConnectControl Error: 2 : Error Message: Failed to Encrypt Configuration File!
+Source	: mscorlib
+Method	: WinIOError
+Date	: 2015-11-02
+Time	: 10:30:56
+Error	: Den återställningsprincip som konfigurerats för den här datorn innehåller ett ogiltigt återställningscertifikat.
+Stack Trace	: vid System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)
+   vid System.IO.File.Encrypt(String path)
+   vid System.IO.FileInfo.Encrypt()
+   vid Microsoft.Xrm.Tooling.CrmConnectControl.CrmConnectionManager.LoadConfigFromFile(Boolean readLocalFirst)
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : This problem may be related to a domain certificate in windows being out of sync with the domain, please read http://support.microsoft.com/kb/937536
+Microsoft.Xrm.Tooling.CrmConnectControl Error: 2 : Error Message: SaveConfigToFile() - fail - C:\Users\maildirect\AppData\Roaming\Microsoft\LoginControlTester\Default_LoginControlTester.exe
+Source	: Microsoft.Xrm.Tooling.CrmConnectControl
+Method	: SaveConfigToFile
+Date	: 2015-11-02
+Time	: 10:30:56
+Error	: Objektreferensen har inte angetts till en instans av ett objekt.
+Stack Trace	: vid Microsoft.Xrm.Tooling.CrmConnectControl.CrmConnectionManager.SaveConfigToFile(Dictionary`2 configToSave)
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Verbose: 16 : Error Message: Failed to get credentials from Windows Vault
+Source	: Microsoft.Xrm.Tooling.CrmConnectControl
+Method	: ReadCredentials
+Date	: 2015-11-02
+Time	: 10:30:56
+Error	: Failed to read the saved credentials.
+Stack Trace	: vid Microsoft.Xrm.Tooling.CrmConnectControl.Utility.CredentialManager.ReadCredentials(String target)
+   vid Microsoft.Xrm.Tooling.CrmConnectControl.CrmConnectionManager.LoadConfigFromFile(Boolean readLocalFirst)
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : CheckBoxState = False
+Microsoft.Xrm.Tooling.CrmConnectControl Error: 2 : Error Message: Exception logged by the CRM Connector control:
+Source	: Not Provided
+Method	: Not Provided
+Date	: 2015-11-02
+Time	: 10:30:56
+Error	: A CRM server name is required.
+Parameternamn: CrmServerName
+Stack Trace	: Not Provided
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : You must specify a CRM Server to connect too
+Microsoft.Xrm.Tooling.CrmConnectControl Verbose: 16 : Error Message: Failed to get credentials from Windows Vault
+Source	: Microsoft.Xrm.Tooling.CrmConnectControl
+Method	: ReadCredentials
+Date	: 2015-11-02
+Time	: 10:30:56
+Error	: Failed to read the saved credentials.
+Stack Trace	: vid Microsoft.Xrm.Tooling.CrmConnectControl.Utility.CredentialManager.ReadCredentials(String target)
+   vid Microsoft.Xrm.Tooling.CrmConnectControl.CrmConnectionManager.LoadConfigFromFile(Boolean readLocalFirst)
+======================================================================================================================
+
+Microsoft.Xrm.Tooling.CrmConnectControl Information: 8 : CheckBoxState = False

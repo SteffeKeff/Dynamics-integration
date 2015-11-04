@@ -5,7 +5,11 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using RestSharp;
+using System.Diagnostics;
 using DynamicsIntegration.Models;
+using Microsoft.Xrm.Sdk;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace DynamicsIntegration.Controllers
 {
@@ -17,14 +21,49 @@ namespace DynamicsIntegration.Controllers
         {
             // Connect to Dynamics
             // Get views
-            Item listSets = GetListSetsFromDynamics();
+
+            //var listSets = GetListSetsFromDynamics();
+
+
             //var modified = listSets.Select(v => new listSets
             //{
             //    ViewId = v.viewId,
             //    Name = v.name
             //};)
 
-            return Ok("tendeee");
+            AuthorityController ac = new AuthorityController();
+            EntityCollection results = ac.getSomething();
+
+            var obj = new JObject();
+
+            //obj["One"] = "Value One";
+            //obj["Two"] = "Value Two";
+            //obj["Three"] = "Value Three";
+
+            var array = new JArray();
+
+            foreach (List lista in results.Entities)
+            {
+                var list = new JObject();
+                list["name"] = lista.ListName;
+                list["listid"] = lista.MemberCount;
+                list["membercount"] = lista.ListId;
+                list["modifiedon"] = lista.ModifiedOn;
+                /*
+                Console.WriteLine("Title: {0}", lista.ListName);
+                        Console.WriteLine("count: {0}", lista.MemberCount);
+                        Console.WriteLine("Id: {0}", lista.ListId);
+                        Console.WriteLine("ModifiedOn: {0}", lista.ModifiedOn);
+                        */
+
+                array.Add(list);
+            }
+
+            obj["marketinglist"] = array;
+
+            return Ok(obj);
+
+            //return Ok("hej");
         }
 
         public class View
@@ -37,24 +76,21 @@ namespace DynamicsIntegration.Controllers
         private dynamic GetListSetsFromDynamics()
         {
 
-            var client = new RestClient("http://brottsplatskartan.se");
+            var client = new RestClient("https://ungapped.crm4.dynamics.com");
             // client.Authenticator = new HttpBasicAuthenticator(username, password);
            
-            var request = new RestRequest("api.php?action=getEvents&period=1440", Method.GET);
+            var request = new RestRequest("XRMServices/2011/OrganizationData.svc/ListSet", Method.GET);
 
             //// easily add HTTP Headers
             //request.AddHeader("header", "value");
 
             // execute the request
-            List<Item> response = client.Execute<List<Item>>(request).Data;
-            foreach(Item item in response){
-                System.Console.WriteLine(item.Title);
-            }
+            var response = client.Execute(request).Content;
+            Debug.WriteLine(response);
 
-            Item content = response.FirstOrDefault<Item>();
-           // var content = response.First<Item> // raw content as string
-            
-            return content;
+            // var content = response.First<Item> // raw content as string
+
+            return response;
         }
 
         /*[Route("Views/{view}")]
@@ -62,5 +98,5 @@ namespace DynamicsIntegration.Controllers
         {
 
         }*/
-    }
-}
+            }
+        }
