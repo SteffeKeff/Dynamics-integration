@@ -42,24 +42,40 @@ namespace DynamicsIntegration.Controllers
         //private String _discoveryServiceAddress = "https://dev.crm.dynamics.com/XRMServices/2011/Discovery.svc";
         private String _discoveryServiceAddress = " https://disco.crm4.dynamics.com/XRMServices/2011/Discovery.svc";
         //private String _organizationUniqueName = "OrganizationUniqueName";
-        private String _organizationUniqueName = "org66aa9e14";
+        //private String _organizationUniqueName = "org66aa9e14";
         // Provide your user name and password.
         //private String _userName = "username@mydomain.com";
-        private String _userName = "stefan.degeer@ungapped.com";
+        public static String _userName;// = "stefan.degeer@ungapped.com";
         //private String _password = "password";
-        private String _password = "";
+        public static String _password;//  = "Q1w2e3r4";
 
         // Provide domain name for the On-Premises org.
         //private String _domain = "mydomain";
-        private String _domain = "ungapped.com";
+        public static String _domain;// = "ungapped.com";
+
+        private static OrganizationServiceProxy organizationServiceProxy = null;
 
         #endregion Class Level Members
+
+        public bool login()
+        {
+            try
+            {
+                organizationServiceProxy = getOrganizationServiceProxy();
+            }
+            catch(Exception)
+            {
+                organizationServiceProxy = null;
+                return false;
+            }
+
+            return true;
+        }
 
         public EntityCollection getAllLists()
         {
             EntityCollection results = new EntityCollection();
             QueryExpression query = new QueryExpression { EntityName = "list", ColumnSet = new ColumnSet("listname", "membercount", "listid", "modifiedon") };
-            OrganizationServiceProxy organizationServiceProxy = getOrganizationServiceProxy();
 
             query.AddOrder("modifiedon", OrderType.Descending);
             results = organizationServiceProxy.RetrieveMultiple(query);
@@ -73,7 +89,6 @@ namespace DynamicsIntegration.Controllers
             Guid listid;
             EntityCollection results = new EntityCollection();
             QueryExpression query = new QueryExpression { EntityName = "listmember", ColumnSet = new ColumnSet("listid", "entityid") };
-            OrganizationServiceProxy organizationServiceProxy = getOrganizationServiceProxy();
 
             try
             {
@@ -101,8 +116,6 @@ namespace DynamicsIntegration.Controllers
 
         public OrganizationServiceProxy getOrganizationServiceProxy()
         {
-            OrganizationServiceProxy organizationServiceProxy = null;
-
             //<snippetAuthenticateWithNoHelp1>
             IServiceManagement<IDiscoveryService> serviceManagement =
                         ServiceConfigurationFactory.CreateManagement<IDiscoveryService>(
@@ -122,10 +135,13 @@ namespace DynamicsIntegration.Controllers
                 {
                     // Obtain information about the organizations that the system user belongs to.
                     OrganizationDetailCollection orgs = DiscoverOrganizations(discoveryProxy);
-                    // Obtains the Web address (Uri) of the target organization.
-                    organizationUri = FindOrganization(_organizationUniqueName,
-                        orgs.ToArray()).Endpoints[EndpointType.OrganizationService];
 
+                    string _organizationUniqueName = orgs.ToArray()[0].UniqueName;
+
+                    // Obtains the Web address (Uri) of the target organization.
+                   organizationUri = FindOrganization(_organizationUniqueName,
+                        orgs.ToArray()).Endpoints[EndpointType.OrganizationService];
+                       
                 }
             }
             //</snippetAuthenticateWithNoHelp1>

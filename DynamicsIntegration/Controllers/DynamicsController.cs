@@ -2,13 +2,10 @@
 using Microsoft.Xrm.Sdk;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http;
 using System.Collections;
 
@@ -22,8 +19,15 @@ namespace DynamicsIntegration.Controllers
         [Route("lists")]
         public IHttpActionResult GetLists()
         {
-            EntityCollection lists = authorityController.getAllLists();
-
+            EntityCollection lists = new EntityCollection();
+            try
+            {
+                lists = authorityController.getAllLists();
+            }
+            catch(Exception)
+            {
+                return Unauthorized();
+            }
             var responsObject = new JObject();
             var jsonLists = new JArray();
 
@@ -46,8 +50,17 @@ namespace DynamicsIntegration.Controllers
         [Route("lists/{id}")]
         public IHttpActionResult GetSingleList(string id)
         {
-            ArrayList contacts = authorityController.getContactsInList(id);
+            ArrayList contacts = new ArrayList();
 
+            try
+            {
+                contacts = authorityController.getContactsInList(id);
+            }
+            catch(Exception)
+            {
+                return Unauthorized();
+            }
+            
             var responsObject = new JObject();
             var jsonContacts = new JArray();
 
@@ -69,6 +82,31 @@ namespace DynamicsIntegration.Controllers
             responsObject["contacts"] = jsonContacts;
 
             return Ok(responsObject);
+        }
+
+        [HttpPost]
+        [Route("login")]
+        public IHttpActionResult Login([FromBody] JObject credentials)
+        {
+
+            try
+            {
+                AuthorityController._domain = credentials.GetValue("domain").ToString();
+                AuthorityController._userName = credentials.GetValue("username").ToString();
+                AuthorityController._password = credentials.GetValue("password").ToString();
+
+                bool loggedIn = authorityController.login();
+
+                if (loggedIn)
+                {
+                    return Ok();
+                }
+                return Unauthorized();
+            }
+            catch(NullReferenceException)
+            {
+                return BadRequest();
+            }
         }
 
     }
