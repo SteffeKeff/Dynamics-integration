@@ -24,7 +24,7 @@ namespace DynamicsIntegration.Controllers
             {
                 lists = authorityController.getAllLists();
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return Unauthorized();
             }
@@ -56,11 +56,11 @@ namespace DynamicsIntegration.Controllers
             {
                 contacts = authorityController.getContactsInList(id);
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return Unauthorized();
             }
-            
+
             var responsObject = new JObject();
             var jsonContacts = new JArray();
 
@@ -74,7 +74,7 @@ namespace DynamicsIntegration.Controllers
                 jsonContacts.Add(jsonContact);
             }
 
-            if(contacts.Capacity == 0)
+            if (contacts.Capacity == 0)
             {
                 return NotFound();
             }
@@ -103,7 +103,7 @@ namespace DynamicsIntegration.Controllers
                 }
                 return Unauthorized();
             }
-            catch(NullReferenceException)
+            catch (NullReferenceException)
             {
                 return BadRequest();
             }

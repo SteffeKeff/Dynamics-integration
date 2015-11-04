@@ -45,13 +45,13 @@ namespace DynamicsIntegration.Controllers
         //private String _organizationUniqueName = "org66aa9e14";
         // Provide your user name and password.
         //private String _userName = "username@mydomain.com";
-        public static String _userName;// = "stefan.degeer@ungapped.com";
+        public static String _userName;
         //private String _password = "password";
-        public static String _password;//  = "Q1w2e3r4";
+        public static String _password;
 
         // Provide domain name for the On-Premises org.
         //private String _domain = "mydomain";
-        public static String _domain;// = "ungapped.com";
+        public static String _domain;
 
         private static OrganizationServiceProxy organizationServiceProxy = null;
 
@@ -63,7 +63,7 @@ namespace DynamicsIntegration.Controllers
             {
                 organizationServiceProxy = getOrganizationServiceProxy();
             }
-            catch(Exception)
+            catch (Exception)
             {
                 organizationServiceProxy = null;
                 return false;
@@ -79,7 +79,7 @@ namespace DynamicsIntegration.Controllers
 
             query.AddOrder("modifiedon", OrderType.Descending);
             results = organizationServiceProxy.RetrieveMultiple(query);
-               
+
             return results;
         }
 
@@ -94,13 +94,13 @@ namespace DynamicsIntegration.Controllers
             {
                 listid = new Guid(id);
             }
-            catch(FormatException)
+            catch (FormatException)
             {
                 return contacts;
             }
 
             results = organizationServiceProxy.RetrieveMultiple(query);
-            
+
             foreach (ListMember member in results.Entities)
             {
                 if (member.ListId.Id == listid)
@@ -139,9 +139,9 @@ namespace DynamicsIntegration.Controllers
                     string _organizationUniqueName = orgs.ToArray()[0].UniqueName;
 
                     // Obtains the Web address (Uri) of the target organization.
-                   organizationUri = FindOrganization(_organizationUniqueName,
-                        orgs.ToArray()).Endpoints[EndpointType.OrganizationService];
-                       
+                    organizationUri = FindOrganization(_organizationUniqueName,
+                         orgs.ToArray()).Endpoints[EndpointType.OrganizationService];
+
                 }
             }
             //</snippetAuthenticateWithNoHelp1>
@@ -193,7 +193,7 @@ namespace DynamicsIntegration.Controllers
                     authCredentials.ClientCredentials.UserName.UserName = _userName;
                     authCredentials.ClientCredentials.UserName.Password = _password;
                     authCredentials.SupportingCredentials = new AuthenticationCredentials();
-                    authCredentials.SupportingCredentials.ClientCredentials = 
+                    authCredentials.SupportingCredentials.ClientCredentials =
                         Microsoft.Crm.Services.Utility.DeviceIdManager.LoadOrRegisterDevice();
                     break;
                 default: // For Federated and OnlineFederated environments.                    
