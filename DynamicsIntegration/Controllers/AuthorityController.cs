@@ -45,13 +45,13 @@ namespace DynamicsIntegration.Controllers
         //private String _organizationUniqueName = "org66aa9e14";
         // Provide your user name and password.
         //private String _userName = "username@mydomain.com";
-        public static String _userName;
+        public string _userName;
         //private String _password = "password";
-        public static String _password;
+        public String _password;
 
         // Provide domain name for the On-Premises org.
         //private String _domain = "mydomain";
-        public static String _domain;
+        public String _domain;
 
         private static OrganizationServiceProxy organizationServiceProxy = null;
 
@@ -105,7 +105,7 @@ namespace DynamicsIntegration.Controllers
             {
                 if (member.ListId.Id == listid)
                 {
-                    Contact contact = organizationServiceProxy.Retrieve("contact", member.EntityId.Id, new ColumnSet(new string[] { "firstname", "lastname", "emailaddress1" })).ToEntity<Contact>();
+                    Contact contact = organizationServiceProxy.Retrieve("contact", member.EntityId.Id, new ColumnSet(new string[] { "firstname", "lastname", "emailaddress1", "mobilephone" })).ToEntity<Contact>();
                     contacts.Add(contact);
                 }
 

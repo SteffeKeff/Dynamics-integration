@@ -106,3 +106,6 @@ C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bi
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\Microsoft.IdentityModel.Clients.ActiveDirectory.xml
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\Microsoft.ServiceBus.xml
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\Microsoft.Xrm.Sdk.xml
+C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\System.Web.Cors.dll
+C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\System.Web.Http.Cors.dll
+C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\System.Web.Http.Cors.xml

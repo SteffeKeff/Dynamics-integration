@@ -8,10 +8,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Web.Http;
 using System.Collections;
+using System.Web.Http.Cors;
 
 namespace DynamicsIntegration.Controllers
 {
     [RoutePrefix("dynamics")]
+    [EnableCors(origins: "http://172.17.123.104:8888", headers: "*", methods: "*")]
     public class DynamicsController : ApiController
     {
         AuthorityController authorityController = new AuthorityController();
@@ -70,6 +72,7 @@ namespace DynamicsIntegration.Controllers
                 jsonContact["firstname"] = contact.FirstName;
                 jsonContact["lastname"] = contact.LastName;
                 jsonContact["email"] = contact.EMailAddress1;
+                jsonContact["mobilephone"] = contact.MobilePhone;
 
                 jsonContacts.Add(jsonContact);
             }
@@ -91,9 +94,9 @@ namespace DynamicsIntegration.Controllers
 
             try
             {
-                AuthorityController._domain = credentials.GetValue("domain").ToString();
-                AuthorityController._userName = credentials.GetValue("username").ToString();
-                AuthorityController._password = credentials.GetValue("password").ToString();
+                authorityController._domain = credentials.GetValue("domain").ToString();
+                authorityController._userName = credentials.GetValue("username").ToString();
+                authorityController._password = credentials.GetValue("password").ToString();
 
                 bool loggedIn = authorityController.login();
 
