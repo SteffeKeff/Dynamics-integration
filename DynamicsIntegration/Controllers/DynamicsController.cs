@@ -9,6 +9,7 @@ using System.Linq;
 using System.Web.Http;
 using System.Collections;
 using System.Web.Http.Cors;
+using System.Reflection;
 
 namespace DynamicsIntegration.Controllers
 {
@@ -16,100 +17,219 @@ namespace DynamicsIntegration.Controllers
     [EnableCors(origins: "http://172.17.123.104:8888", headers: "*", methods: "*")]
     public class DynamicsController : ApiController
     {
-        AuthorityController authorityController = new AuthorityController();
+        AuthorityController authorityController;
 
-        [Route("lists")]
-        public IHttpActionResult GetLists()
-        {
-            EntityCollection lists = new EntityCollection();
+        [Route("displaynames/{entitySchemaName}")]
+        public IHttpActionResult GetDisplayName(string entitySchemaName, [FromUri]DynamicsCredentials credentials)
+        {    
+
             try
             {
-                lists = authorityController.getAllLists();
+                authorityController = new AuthorityController(credentials);
+            }
+            catch(Exception)
+            {
+                return Unauthorized();
+            }
+            var localNames = authorityController.GetAttributeDisplayName(entitySchemaName);
+
+            return Ok(localNames);
+        }
+
+        [Route("lists")]
+        public IHttpActionResult GetLists([FromUri]DynamicsCredentials credentials)
+        {
+
+            try
+            {
+                authorityController = new AuthorityController(credentials);
             }
             catch (Exception)
             {
                 return Unauthorized();
             }
+
+            EntityCollection lists = authorityController.getAllLists(false);
+            var responsObject = getValuesFromLists(lists, false);
+
+            return Ok(responsObject);
+        }
+
+        [Route("lists2")]
+        public IHttpActionResult GetListsWithAllAttributes([FromUri]DynamicsCredentials credentials)
+        {
+
+            try
+            {
+                authorityController = new AuthorityController(credentials);
+            }
+            catch (Exception)
+            {
+                return Unauthorized();
+            }
+
+            EntityCollection lists = authorityController.getAllLists(true);
+            var responsObject = getValuesFromLists(lists, true);
+
+            return Ok(responsObject);
+        }
+        
+        /// /Lists/id/Contacts?Domain=X&UserName=Y&Password=Z
+        [Route("Lists/{listId}/Contacts")]
+        public IHttpActionResult GetContacts(string listId, [FromUri]DynamicsCredentials credentials, [FromUri] int preview = 0)
+        {
+
+            try
+            {
+                authorityController = new AuthorityController(credentials);
+            }
+            catch (Exception)
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                ArrayList contacts = authorityController.getContactsInList(listId, false, preview);
+                var responsObject = getValuesFromContacts(contacts, false);
+                return Ok(responsObject);
+            }
+            catch(Exception)
+            {
+                return BadRequest();
+            }
+            
+        }
+
+        [Route("lists2/{listId}/contacts")]
+        public IHttpActionResult GetContactsWithAttributes(string listId, [FromUri]DynamicsCredentials credentials,[FromUri] int preview = 0)
+        {
+
+            try
+            {
+                authorityController = new AuthorityController(credentials); 
+            }
+            catch (Exception)
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                ArrayList contacts = authorityController.getContactsInList(listId, true, preview);
+                var responsObject = getValuesFromContacts(contacts, true);
+
+                return Ok(responsObject);
+            }
+            catch(Exception)
+            {
+                return BadRequest();
+            }
+        }
+
+        private JObject getValuesFromLists(EntityCollection lists, bool allAttributes)
+        {
             var responsObject = new JObject();
             var jsonLists = new JArray();
 
             foreach (List list in lists.Entities)
             {
                 var jsonList = new JObject();
-                jsonList["name"] = list.ListName;
-                jsonList["listid"] = list.ListId;
-                jsonList["membercount"] = list.MemberCount;
-                jsonList["modifiedon"] = list.ModifiedOn;
+
+                if(allAttributes)
+                {
+                    foreach (KeyValuePair<string, Object> attribute in list.Attributes)
+                    {
+                        jsonList[attribute.Key] = attribute.Value.ToString();
+                    }
+                }
+                else
+                {
+                    jsonList["name"] = list.ListName;
+                    jsonList["listid"] = list.ListId;
+                    jsonList["membercount"] = list.MemberCount;
+                    jsonList["modifiedon"] = list.ModifiedOn;
+                }
 
                 jsonLists.Add(jsonList);
             }
+            jsonLists = translateToDisplayName(jsonLists, "list");
 
             responsObject["lists"] = jsonLists;
 
-            return Ok(responsObject);
+            return responsObject;
         }
 
-        [Route("lists/{id}")]
-        public IHttpActionResult GetSingleList(string id)
+        private JObject getValuesFromContacts(ArrayList contacts, bool allAttributes)
         {
-            ArrayList contacts = new ArrayList();
-
-            try
-            {
-                contacts = authorityController.getContactsInList(id);
-            }
-            catch (Exception)
-            {
-                return Unauthorized();
-            }
-
             var responsObject = new JObject();
             var jsonContacts = new JArray();
 
             foreach (Contact contact in contacts)
             {
                 var jsonContact = new JObject();
-                jsonContact["firstname"] = contact.FirstName;
-                jsonContact["lastname"] = contact.LastName;
-                jsonContact["email"] = contact.EMailAddress1;
-                jsonContact["mobilephone"] = contact.MobilePhone;
+
+                if (allAttributes)
+                {
+                    foreach (var prop in contact.GetType().GetProperties())
+                    {
+                        if (prop.Name != "Item")
+                        {
+                            var val = prop.GetValue(contact, null);
+                            jsonContact[prop.Name] = val == null ? null : val.ToString();
+                        }
+                    }
+                }
+                else
+                {
+                    jsonContact["firstname"] = contact.FirstName;
+                    jsonContact["lastname"] = contact.LastName;
+                    jsonContact["emailaddress1"] = contact.EMailAddress1;
+                    jsonContact["mobilephone"] = contact.MobilePhone;
+                }
 
                 jsonContacts.Add(jsonContact);
             }
 
-            if (contacts.Capacity == 0)
-            {
-                return NotFound();
-            }
+            jsonContacts = translateToDisplayName(jsonContacts, "contact");
 
             responsObject["contacts"] = jsonContacts;
 
-            return Ok(responsObject);
+            return responsObject;
         }
 
-        [HttpPost]
-        [Route("login")]
-        public IHttpActionResult Login([FromBody] JObject credentials)
+        private JArray translateToDisplayName(JArray array, string type)
         {
+            var displayNames = authorityController.GetAttributeDisplayName(type);
 
-            try
+            JArray arrayWithDisplayNames = new JArray();
+
+            foreach(JObject contact in array.Children<JObject>())
             {
-                authorityController._domain = credentials.GetValue("domain").ToString();
-                authorityController._userName = credentials.GetValue("username").ToString();
-                authorityController._password = credentials.GetValue("password").ToString();
-
-                bool loggedIn = authorityController.login();
-
-                if (loggedIn)
+                JObject newContact = new JObject();
+                foreach(JProperty keyValue in contact.Properties())
                 {
-                    return Ok();
+                    if(displayNames.ContainsKey(keyValue.Name.ToString().ToLower()))
+                    {
+                        string displayName;
+                        displayNames.TryGetValue(keyValue.Name.ToString().ToLower(), out displayName);
+
+                        try
+                        {
+                            newContact.Add(displayName, keyValue.Value);
+                        }
+                        catch(Exception)
+                        {
+                            
+                        }
+                        
+                    }
                 }
-                return Unauthorized();
+                arrayWithDisplayNames.Add(newContact);
             }
-            catch (NullReferenceException)
-            {
-                return BadRequest();
-            }
+
+            return arrayWithDisplayNames;
+
         }
 
     }

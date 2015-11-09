@@ -18,6 +18,7 @@ using System;
 using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 
 // These namespaces are found in the Microsoft.Xrm.Sdk.dll assembly
@@ -27,6 +28,11 @@ using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Sdk.Client;
 using Microsoft.Xrm.Sdk.Discovery;
 using Microsoft.Crm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Metadata;
+
+using System.Linq;
+using DynamicsIntegration.Models;
 
 namespace DynamicsIntegration.Controllers
 {
@@ -51,39 +57,56 @@ namespace DynamicsIntegration.Controllers
 
         // Provide domain name for the On-Premises org.
         //private String _domain = "mydomain";
-        public String _domain;
+        public String _domain = "";
 
         private static OrganizationServiceProxy organizationServiceProxy = null;
 
         #endregion Class Level Members
 
-        public bool login()
+        public AuthorityController(DynamicsCredentials credentials)
         {
-            try
-            {
-                organizationServiceProxy = getOrganizationServiceProxy();
-            }
-            catch (Exception)
-            {
-                organizationServiceProxy = null;
-                return false;
-            }
+            _userName = credentials.UserName;
+            _password = credentials.Password;
+            _domain = credentials.Domain;
 
-            return true;
+            organizationServiceProxy = getOrganizationServiceProxy();
         }
 
-        public EntityCollection getAllLists()
+        public EntityCollection getAllLists(bool allAttributes)
         {
             EntityCollection results = new EntityCollection();
-            QueryExpression query = new QueryExpression { EntityName = "list", ColumnSet = new ColumnSet("listname", "membercount", "listid", "modifiedon") };
+            QueryExpression query;
 
+            if (allAttributes)
+            {
+                query = new QueryExpression { EntityName = "list", ColumnSet = new ColumnSet(true) };
+            }
+            else
+            {
+                query = new QueryExpression { EntityName = "list", ColumnSet = new ColumnSet("listname", "membercount", "listid", "modifiedon") };
+            }
+            
             query.AddOrder("modifiedon", OrderType.Descending);
             results = organizationServiceProxy.RetrieveMultiple(query);
 
             return results;
         }
 
-        public ArrayList getContactsInList(string id)
+        public EntityCollection changeBulkEmail()
+        {
+            EntityCollection results = new EntityCollection();
+
+            QueryExpression query = new QueryExpression { EntityName = "list", ColumnSet = new ColumnSet(true) };
+            
+            
+            query.AddOrder("modifiedon", OrderType.Descending);
+
+            results = organizationServiceProxy.RetrieveMultiple(query);
+
+            return results;
+        }
+
+        public ArrayList getContactsInList(string id, bool allAttributes, int preview)
         {
             ArrayList contacts = new ArrayList();
             Guid listid;
@@ -99,20 +122,71 @@ namespace DynamicsIntegration.Controllers
                 return contacts;
             }
 
+            if(preview != 0)
+            {
+                query.TopCount = preview;
+            }
+
+            query.Criteria = new FilterExpression();
+            query.Criteria.AddCondition("listid", ConditionOperator.Equal, listid);
+
             results = organizationServiceProxy.RetrieveMultiple(query);
 
             foreach (ListMember member in results.Entities)
             {
-                if (member.ListId.Id == listid)
+                Contact contact;
+                if (allAttributes)
                 {
-                    Contact contact = organizationServiceProxy.Retrieve("contact", member.EntityId.Id, new ColumnSet(new string[] { "firstname", "lastname", "emailaddress1", "mobilephone" })).ToEntity<Contact>();
-                    contacts.Add(contact);
+                    contact = organizationServiceProxy.Retrieve("contact", member.EntityId.Id, new ColumnSet(true)).ToEntity<Contact>();
                 }
-
+                else
+                {
+                    contact = organizationServiceProxy.Retrieve("contact", member.EntityId.Id, new ColumnSet(new string[] { "firstname", "lastname", "emailaddress1", "mobilephone" })).ToEntity<Contact>();
+                }
+                contacts.Add(contact);
             }
 
             return contacts;
         }
+
+        public Dictionary<string,string> GetAttributeDisplayName(string entitySchemaName) /*, string attributeSchemaName*/
+        {
+
+            IOrganizationService service = organizationServiceProxy;
+            /*RetrieveAttributeRequest retrieveAttributeRequest = new RetrieveAttributeRequest
+            {
+                EntityLogicalName = entitySchemaName,
+                LogicalName = attributeSchemaName,
+                RetrieveAsIfPublished = true
+            };*/
+            RetrieveEntityRequest req = new RetrieveEntityRequest();
+            req.RetrieveAsIfPublished = true;
+            req.LogicalName = entitySchemaName;
+            req.EntityFilters = EntityFilters.Attributes;
+
+            //RetrieveAttributeResponse retrieveAttributeResponse = (RetrieveAttributeResponse)service.Execute(req);//(retrieveAttributeRequest);
+            RetrieveEntityResponse resp = (RetrieveEntityResponse)service.Execute(req);
+
+            Dictionary<string, string> displayNames = new Dictionary<string, string>();
+             
+            for (int iCnt = 0; iCnt < resp.EntityMetadata.Attributes.ToList().Count; iCnt++)
+            {
+                if (resp.EntityMetadata.Attributes.ToList()[iCnt].DisplayName.LocalizedLabels.Count > 0)
+                {
+                    string displayName = resp.EntityMetadata.Attributes.ToList()[iCnt].DisplayName.LocalizedLabels[0].Label;
+                    string logicalName = resp.EntityMetadata.Attributes.ToList()[iCnt].LogicalName;
+                    displayNames.Add(logicalName, displayName.ToString());
+                }
+
+            }
+
+            return displayNames;
+
+            //AttributeMetadata retrievedAttributeMetadata = (AttributeMetadata)retrieveAttributeResponse.AttributeMetadata;
+
+           // return retrievedAttributeMetadata.DisplayName.UserLocalizedLabel.Label;
+        }
+
 
         public OrganizationServiceProxy getOrganizationServiceProxy()
         {
@@ -136,6 +210,7 @@ namespace DynamicsIntegration.Controllers
                     // Obtain information about the organizations that the system user belongs to.
                     OrganizationDetailCollection orgs = DiscoverOrganizations(discoveryProxy);
 
+                    //Fetches the first uniqueName in organizations array
                     string _organizationUniqueName = orgs.ToArray()[0].UniqueName;
 
                     // Obtains the Web address (Uri) of the target organization.

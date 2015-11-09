@@ -58,9 +58,6 @@ C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bi
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\roslyn\vbc.exe
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\roslyn\VBCSCompiler.exe
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\roslyn\VBCSCompiler.exe.config
-C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\WebApplication1.dll.config
-C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\WebApplication1.dll
-C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\WebApplication1.pdb
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\Antlr3.Runtime.dll
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\Microsoft.Web.Infrastructure.dll
@@ -92,8 +89,6 @@ C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bi
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\System.Web.WebPages.Razor.xml
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\Antlr3.Runtime.pdb
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\obj\Debug\DynamicsIntegration.csprojResolveAssemblyReference.cache
-C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\obj\Debug\WebApplication1.dll
-C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\obj\Debug\WebApplication1.pdb
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\Microsoft.Crm.Sdk.Proxy.dll
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\Microsoft.Dynamics.Marketing.SDK.dll
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\Microsoft.IdentityModel.Clients.ActiveDirectory.dll
@@ -109,3 +104,8 @@ C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bi
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\System.Web.Cors.dll
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\System.Web.Http.Cors.dll
 C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\System.Web.Http.Cors.xml
+C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\DynamicsIntegration.dll.config
+C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\DynamicsIntegration.dll
+C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\bin\DynamicsIntegration.pdb
+C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\obj\Debug\DynamicsIntegration.dll
+C:\Users\maildirect\Documents\GitHub\Dynamics-integration\DynamicsIntegration\obj\Debug\DynamicsIntegration.pdb
