@@ -206,11 +206,12 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\SampleDirection.cs" />
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
-    <Compile Include="Controllers\AuthorityController.cs" />
-    <Compile Include="Controllers\MyOrganizationCrmSdkTypes.cs" />
-    <Compile Include="Controllers\CrmServiceHelpers.cs" />
-    <Compile Include="Controllers\DeviceIdManager.cs" />
-    <Compile Include="Controllers\DynamicsController.cs" />
+    <Compile Include="Services\CrmApiHelper.cs" />
+    <Compile Include="Services\CrmService.cs" />
+    <Compile Include="Models\MyOrganizationCrmSdkTypes.cs" />
+    <Compile Include="Services\CrmServiceHelpers.cs" />
+    <Compile Include="Services\DeviceIdManager.cs" />
+    <Compile Include="Controllers\CrmApiController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
