@@ -25,9 +25,8 @@ namespace DynamicsIntegration.Controllers
             try
             {
                 crmService = new CrmService(credentials);
-                //ArrayList orgIds = crmService.getOrganizationUniqueNames();
-                var orgIds = "hej";
-                return Ok(orgIds);
+                ArrayList orgNames = crmService.getOrganizations();
+                return Ok(orgNames);
             }
             catch (Exception ex) when (ex is MessageSecurityException || ex is ArgumentNullException)
             {
@@ -35,13 +34,14 @@ namespace DynamicsIntegration.Controllers
             }
         }
 
-        [Route("Organisations/{orgId}/MarketLists")]
+        [Route("Organizations/{orgName}/MarketLists")]
         [HttpPost]
-        public IHttpActionResult GetListsWithAllAttributes([FromUri]DynamicsCredentials credentials, [FromUri] bool translate = false, [FromUri] bool allValues = true)
+        public IHttpActionResult GetListsWithAllAttributes(string orgName, [FromUri]DynamicsCredentials credentials, [FromUri] bool translate = false, [FromUri] bool allValues = true)
         {
             try
             {
                 crmService = new CrmService(credentials);
+                crmService.setOrgName(orgName);
                 helper = new CrmApiHelper(crmService);
             }
             catch (Exception ex) when (ex is MessageSecurityException || ex is ArgumentNullException)
@@ -55,14 +55,15 @@ namespace DynamicsIntegration.Controllers
             return Ok(responsObject);
         }
 
-        [Route("Organisations/{orgId}/MarketLists/{listId}/Contacts")]
+        [Route("Organizations/{orgName}/MarketLists/{listId}/Contacts")]
         [HttpPost]
-        public IHttpActionResult GetContactsWithAttributes(string listId, [FromUri]DynamicsCredentials credentials, [FromUri] int top = 0, [FromUri] bool translate = true, [FromUri] bool allValues = true)
+        public IHttpActionResult GetContactsWithAttributes(string orgName, string listId, [FromUri]DynamicsCredentials credentials, [FromUri] int top = 0, [FromUri] bool translate = true, [FromUri] bool allValues = true)
         {
             Debug.WriteLine("contacts anrop " + DateTime.Now.ToString());
             try
             {
                 crmService = new CrmService(credentials);
+                crmService.setOrgName(orgName);
                 helper = new CrmApiHelper(crmService);
                 Debug.WriteLine("contacts anrop efter try" + DateTime.Now.ToString());
             }
@@ -86,13 +87,14 @@ namespace DynamicsIntegration.Controllers
             }
         }
 
-        [Route("Organisations/{orgId}/Contacts/{contactId}/Donotbulkemail")]
+        [Route("Organizations/{orgId}/Contacts/{contactId}/Donotbulkemail")]
         [HttpPut]
-        public IHttpActionResult UpdateBulkEmailForContact(string contactId, [FromUri]DynamicsCredentials credentials)
+        public IHttpActionResult UpdateBulkEmailForContact(string orgName, string contactId, [FromUri]DynamicsCredentials credentials)
         {
             try
             {
                 crmService = new CrmService(credentials);
+                crmService.setOrgName(orgName);
             }
             catch (Exception ex) when (ex is MessageSecurityException || ex is ArgumentNullException)
             {
