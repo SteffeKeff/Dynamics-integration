@@ -1,15 +1,15 @@
-﻿using Microsoft.Xrm.Sdk;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+
+using Microsoft.Xrm.Sdk;
+using Newtonsoft.Json.Linq;
 using DynamicsIntegration.Controllers;
 
 namespace DynamicsIntegration.Services
 {
     public class CrmApiHelper
     {
-
         CrmService crmService;
 
         internal CrmApiHelper(CrmService service)
@@ -98,12 +98,11 @@ namespace DynamicsIntegration.Services
         public JArray translateToDisplayName(JArray array, string type)
         {
             var displayNames = crmService.GetAttributeDisplayName(type);
-
-            JArray contactsWithDisplayNames = new JArray();
+            var contactsWithDisplayNames = new JArray();
 
             foreach (JObject contact in array.Children<JObject>())
             {
-                JObject newContact = new JObject();
+                var newContact = new JObject();
                 foreach (JProperty keyValue in contact.Properties())
                 {
                     if (displayNames.ContainsKey(keyValue.Name.ToString().ToLower()))
@@ -124,9 +123,7 @@ namespace DynamicsIntegration.Services
                 }
                 contactsWithDisplayNames.Add(newContact);
             }
-
             return contactsWithDisplayNames;
-
         }
 
     }
