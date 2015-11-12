@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Diagnostics;
 using System.Collections;
 using System.Collections.Generic;
 using System.ServiceModel.Description;
@@ -20,11 +19,10 @@ namespace DynamicsIntegration.Controllers
     class CrmService
     {
         #region Class Level Members
-        //private String organizationUniqueName = "org66aa9e14";
         string userName;
         string password;
         string domain = "";
-        string organizationUniqueName;
+        string organizationUniqueName = "";
         OrganizationDetailCollection organizations;
         string discoveryServiceAddress = " https://disco.crm4.dynamics.com/XRMServices/2011/Discovery.svc";
         OrganizationServiceProxy organizationServiceProxy = null;
@@ -40,16 +38,26 @@ namespace DynamicsIntegration.Controllers
             organizationServiceProxy = getOrganizationServiceProxy();
         }
 
-        public ArrayList getOrganizations()
+        public CrmService(DynamicsCredentials credentials, string orgName)
         {
-            ArrayList orgArray = new ArrayList();
+            userName = credentials.UserName;
+            password = credentials.Password;
+            domain = credentials.Domain;
+            organizationUniqueName = orgName;
+
+            organizationServiceProxy = getOrganizationServiceProxy();
+        }
+
+        public Dictionary<string,string> getOrganizations()
+        {
+            Dictionary<string, string> orgs = new Dictionary<string, string>();
 
             foreach (var details in organizations.ToArray())
             {
-                orgArray.Add(details.UniqueName);
+                orgs.Add(details.FriendlyName, details.UniqueName);
             }
 
-            return orgArray;
+            return orgs;
         }
 
         public EntityCollection getAllLists(bool allAttributes)
@@ -84,20 +92,12 @@ namespace DynamicsIntegration.Controllers
 
         public ArrayList getContactsInList(string id, bool allAttributes, int preview)
         {
-            Debug.WriteLine("getcontactsinlist() " + DateTime.Now.ToString());
             Guid listid;
+            EntityCollection results;
             var contacts = new ArrayList();
-            var results = new EntityCollection();
             var query = new QueryExpression { EntityName = "listmember", ColumnSet = new ColumnSet("listid", "entityid") };
 
-            try
-            {
-                listid = new Guid(id);
-            }
-            catch (FormatException)
-            {
-                return contacts;
-            }
+            listid = new Guid(id);
 
             if(preview != 0)
             {
@@ -122,7 +122,7 @@ namespace DynamicsIntegration.Controllers
                 }
                 contacts.Add(contact);
             }
-            Debug.WriteLine("klar med getAllLists() klar " + DateTime.Now.ToString());
+
             return contacts;
         }
 
@@ -150,11 +150,6 @@ namespace DynamicsIntegration.Controllers
             return displayNames;
         }
 
-        public void setOrgName(string orgName)
-        {
-            organizationUniqueName = orgName;
-        }
-
         private string getOrgName()
         {
             if(String.IsNullOrEmpty(organizationUniqueName))
@@ -180,12 +175,8 @@ namespace DynamicsIntegration.Controllers
                 if (discoveryProxy != null)
                 {
                     organizations = DiscoverOrganizations(discoveryProxy);
-
-                    //Fetches the first uniqueName in organizations array
-                    //organizationUniqueName = getOrgName();
                     organizationUniqueName = String.IsNullOrEmpty(organizationUniqueName) ? organizations.ToArray()[0].UniqueName : organizationUniqueName;
-
-                    // Obtains the Web address (Uri) of the target organization.
+                    
                     organizationUri = FindOrganization(organizationUniqueName,
                          organizations.ToArray()).Endpoints[EndpointType.OrganizationService];
                 }

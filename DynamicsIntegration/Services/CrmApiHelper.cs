@@ -49,7 +49,7 @@ namespace DynamicsIntegration.Services
                 jsonLists = translateToDisplayName(jsonLists, "list");
             }
 
-            responsObject["lists"] = jsonLists;
+            responsObject["marketlists"] = jsonLists;
 
             return responsObject;
         }
