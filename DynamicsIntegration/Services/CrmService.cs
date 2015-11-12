@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 using System.ServiceModel.Description;
 
@@ -29,16 +28,9 @@ namespace DynamicsIntegration.Controllers
 
         #endregion Class Level Members
 
-        public CrmService(DynamicsCredentials credentials)
-        {
-            userName = credentials.UserName;
-            password = credentials.Password;
-            domain = credentials.Domain;
+        public CrmService(DynamicsCredentials credentials) : this(credentials, "") {}
 
-            organizationServiceProxy = getOrganizationServiceProxy();
-        }
-
-        public CrmService(DynamicsCredentials credentials, string orgName)
+        public CrmService(DynamicsCredentials credentials, string orgName) 
         {
             userName = credentials.UserName;
             password = credentials.Password;
@@ -90,11 +82,11 @@ namespace DynamicsIntegration.Controllers
             organizationServiceProxy.Update(contact);
         }
 
-        public ArrayList getContactsInList(string id, bool allAttributes, int preview)
+        public EntityCollection getContactsInList(string id, bool allAttributes, int preview)
         {
             Guid listid;
             EntityCollection results;
-            var contacts = new ArrayList();
+            var contacts = new EntityCollection();
             var query = new QueryExpression { EntityName = "listmember", ColumnSet = new ColumnSet("listid", "entityid") };
 
             listid = new Guid(id);
@@ -120,7 +112,8 @@ namespace DynamicsIntegration.Controllers
                 {
                     contact = organizationServiceProxy.Retrieve("contact", member.EntityId.Id, new ColumnSet(new string[] { "firstname", "lastname", "emailaddress1", "mobilephone" })).ToEntity<Contact>();
                 }
-                contacts.Add(contact);
+                contacts.Entities.Add(contact);
+                //contacts.Add(contact);
             }
 
             return contacts;

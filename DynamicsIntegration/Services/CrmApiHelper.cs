@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 using Microsoft.Xrm.Sdk;
@@ -54,12 +53,12 @@ namespace DynamicsIntegration.Services
             return responsObject;
         }
 
-        public JObject getValuesFromContacts(ArrayList contacts, bool translate, bool allAttributes)
+        public JObject getValuesFromContacts(EntityCollection contacts, bool translate, bool allAttributes)
         {
             var responsObject = new JObject();
             var jsonContacts = new JArray();
 
-            foreach (Contact contact in contacts)
+            foreach (Contact contact in contacts.Entities)
             {
                 var jsonContact = new JObject();
 
