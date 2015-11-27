@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-using Microsoft.Xrm.Sdk;
+﻿using Microsoft.Xrm.Sdk;
 using Newtonsoft.Json.Linq;
 using DynamicsIntegration.Controllers;
 
@@ -16,28 +13,23 @@ namespace DynamicsIntegration.Services
             crmService = service;
         }
 
-        public JObject getValuesFromLists(EntityCollection lists, bool translate, bool allAttributes)
+        public JArray getValuesFromLists(EntityCollection lists, bool translate, bool allAttributes)
         {
-            var responsObject = new JObject();
             var jsonLists = new JArray();
             
-            foreach (List list in lists.Entities)
+            foreach (var list in lists.Entities)
             {
                 var jsonList = new JObject();
 
-                if (allAttributes)
+                foreach (var prop in list.GetType().GetProperties())
                 {
-                    foreach (KeyValuePair<string, Object> attribute in list.Attributes)
+                    if (prop.Name != "Item")
                     {
-                        jsonList[attribute.Key] = attribute.Value.ToString();
+                        var val = prop.GetValue(list, null);
+
+                        if (allAttributes | val != null)
+                            jsonList[prop.Name] = val == null ? null : val.ToString();
                     }
-                }
-                else
-                {
-                    jsonList["name"] = list.ListName;
-                    jsonList["listid"] = list.ListId;
-                    jsonList["membercount"] = list.MemberCount;
-                    jsonList["modifiedon"] = list.ModifiedOn;
                 }
 
                 jsonLists.Add(jsonList);
@@ -48,37 +40,26 @@ namespace DynamicsIntegration.Services
                 jsonLists = translateToDisplayName(jsonLists, "list");
             }
 
-            responsObject["marketlists"] = jsonLists;
-
-            return responsObject;
+            return jsonLists;
         }
 
-        public JObject getValuesFromContacts(EntityCollection contacts, bool translate, bool allAttributes)
+        public JArray getValuesFromContacts(EntityCollection contacts, bool translate, bool allAttributes)
         {
-            var responsObject = new JObject();
             var jsonContacts = new JArray();
 
-            foreach (Contact contact in contacts.Entities)
+            foreach (var contact in contacts.Entities)
             {
                 var jsonContact = new JObject();
 
-                if (allAttributes)
+                foreach (var prop in contact.GetType().GetProperties())
                 {
-                    foreach (var prop in contact.GetType().GetProperties())
+                    if (prop.Name != "Item")
                     {
-                        if (prop.Name != "Item")
-                        {
-                            var val = prop.GetValue(contact, null);
+                        var val = prop.GetValue(contact, null);
+
+                        if (allAttributes | val != null)
                             jsonContact[prop.Name] = val == null ? null : val.ToString();
-                        }
                     }
-                }
-                else
-                {
-                    jsonContact["firstname"] = contact.FirstName;
-                    jsonContact["lastname"] = contact.LastName;
-                    jsonContact["emailaddress1"] = contact.EMailAddress1;
-                    jsonContact["mobilephone"] = contact.MobilePhone;
                 }
 
                 jsonContacts.Add(jsonContact);
@@ -89,9 +70,7 @@ namespace DynamicsIntegration.Services
                 jsonContacts = translateToDisplayName(jsonContacts, "contact");
             }
 
-            responsObject["contacts"] = jsonContacts;
-
-            return responsObject;
+            return jsonContacts;
         }
 
         public JArray translateToDisplayName(JArray array, string type)
@@ -99,10 +78,10 @@ namespace DynamicsIntegration.Services
             var displayNames = crmService.GetAttributeDisplayName(type);
             var contactsWithDisplayNames = new JArray();
 
-            foreach (JObject contact in array.Children<JObject>())
+            foreach (var contact in array.Children<JObject>())
             {
                 var newContact = new JObject();
-                foreach (JProperty keyValue in contact.Properties())
+                foreach (var keyValue in contact.Properties())
                 {
                     if (displayNames.ContainsKey(keyValue.Name.ToString().ToLower()))
                     {
@@ -122,6 +101,7 @@ namespace DynamicsIntegration.Services
                 }
                 contactsWithDisplayNames.Add(newContact);
             }
+
             return contactsWithDisplayNames;
         }
 

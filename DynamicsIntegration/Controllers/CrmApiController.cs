@@ -24,8 +24,10 @@ namespace DynamicsIntegration.Controllers
             try
             {
                 crmService = new CrmService(credentials);
+                var organizations = crmService.getOrganizations();
+                crmService.logout();
 
-                return Ok(crmService.getOrganizations());
+                return Ok(organizations);
             }
             catch (Exception ex) when (ex is MessageSecurityException || ex is ArgumentNullException)
             {
@@ -39,17 +41,18 @@ namespace DynamicsIntegration.Controllers
 
         [Route("Organizations/{orgName}/MarketLists")]
         [HttpPost]
-        public IHttpActionResult GetListsWithAllAttributes(string orgName, [FromUri]DynamicsCredentials credentials, [FromUri] bool translate = false, [FromUri] bool allValues = true)
+        public IHttpActionResult GetListsWithAllAttributes(string orgName, [FromUri]DynamicsCredentials credentials, [FromUri] bool translate = false, [FromUri] bool allAttributes = true)
         {
             try
             {
                 crmService = new CrmService(credentials, orgName);
                 helper = new CrmApiHelper(crmService);
 
-                var lists = crmService.getAllLists(allValues);
-                var responsObject = helper.getValuesFromLists(lists, translate, allValues);
+                var lists = crmService.getAllLists(allAttributes);
+                var goodLookingLists = helper.getValuesFromLists(lists, translate, allAttributes);
+                crmService.logout();
 
-                return Ok(responsObject);
+                return Ok(goodLookingLists);
             }
             catch (Exception ex) when (ex is MessageSecurityException || ex is ArgumentNullException)
             {
@@ -63,17 +66,18 @@ namespace DynamicsIntegration.Controllers
 
         [Route("Organizations/{orgName}/MarketLists/{listId}/Contacts")]
         [HttpPost]
-        public IHttpActionResult GetContactsWithAttributes(string orgName, string listId, [FromUri]DynamicsCredentials credentials, [FromUri] int top = 0, [FromUri] bool translate = true, [FromUri] bool allValues = true)
+        public IHttpActionResult GetContactsWithAttributes(string orgName, string listId, [FromUri]DynamicsCredentials credentials, [FromUri] int top = 0, [FromUri] bool translate = true, [FromUri] bool allAttributes = true)
         {
             try
             {
                 crmService = new CrmService(credentials, orgName);
                 helper = new CrmApiHelper(crmService);
 
-                var contacts = crmService.getContactsInList(listId, allValues, top);
-                var responsObject = helper.getValuesFromContacts(contacts, translate, allValues);
+                var contacts = crmService.getContactsInList(listId, allAttributes, top);
+                var goodLookingContacts = helper.getValuesFromContacts(contacts, translate, allAttributes);
+                crmService.logout();
 
-                return Ok(responsObject);
+                return Ok(goodLookingContacts);
             }
             catch (Exception ex) when (ex is MessageSecurityException || ex is ArgumentNullException)
             {
@@ -94,6 +98,7 @@ namespace DynamicsIntegration.Controllers
                 crmService = new CrmService(credentials, orgName);
 
                 crmService.changeBulkEmail(contactId);
+                crmService.logout();
 
                 return Ok();
             }

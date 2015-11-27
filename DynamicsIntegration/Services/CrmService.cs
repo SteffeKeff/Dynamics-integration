@@ -18,14 +18,9 @@ namespace DynamicsIntegration.Controllers
     class CrmService
     {
         #region Class Level Members
-        string userName;
-        string password;
-        string domain = "";
-        string organizationUniqueName = "";
+        string userName, password, domain = "", organizationUniqueName = "", discoveryServiceAddress = " https://disco.crm4.dynamics.com/XRMServices/2011/Discovery.svc";
         OrganizationDetailCollection organizations;
-        string discoveryServiceAddress = " https://disco.crm4.dynamics.com/XRMServices/2011/Discovery.svc";
         OrganizationServiceProxy organizationServiceProxy = null;
-
         #endregion Class Level Members
 
         public CrmService(DynamicsCredentials credentials) : this(credentials, "") {}
@@ -40,7 +35,12 @@ namespace DynamicsIntegration.Controllers
             organizationServiceProxy = getOrganizationServiceProxy();
         }
 
-        public Dictionary<string,string> getOrganizations()
+        public void logout()
+        {
+            organizationServiceProxy.Dispose();
+        }
+
+        public Dictionary<string, string> getOrganizations()
         {
             Dictionary<string, string> orgs = new Dictionary<string, string>();
 
@@ -82,47 +82,52 @@ namespace DynamicsIntegration.Controllers
             organizationServiceProxy.Update(contact);
         }
 
-        public EntityCollection getContactsInList(string id, bool allAttributes, int preview)
+        public EntityCollection getContactsInList(string id, bool allAttributes, int top)
         {
-            Guid listid;
-            EntityCollection results;
-            var contacts = new EntityCollection();
-            var query = new QueryExpression { EntityName = "listmember", ColumnSet = new ColumnSet("listid", "entityid") };
+            EntityCollection listMembers, contacts;
+            Guid listid = new Guid(id);
+            QueryExpression contactsQuery;
 
-            listid = new Guid(id);
-
-            if(preview != 0)
+            var listMembersQuery = new QueryExpression { EntityName = "listmember", ColumnSet = new ColumnSet("listid", "entityid") };
+            
+            if (allAttributes)
             {
-                query.TopCount = preview;
+                contactsQuery = new QueryExpression { EntityName = "contact", ColumnSet = new ColumnSet(true) };
+            }
+            else
+            {
+                contactsQuery = new QueryExpression { EntityName = "contact", ColumnSet = new ColumnSet("firstname", "lastname", "emailaddress1", "mobilephone") };
             }
 
-            query.Criteria = new FilterExpression();
-            query.Criteria.AddCondition("listid", ConditionOperator.Equal, listid);
+            if (top != 0){ listMembersQuery.TopCount = top; }
 
-            results = organizationServiceProxy.RetrieveMultiple(query);
+            listMembersQuery.Criteria = new FilterExpression();
+            listMembersQuery.Criteria.AddCondition("listid", ConditionOperator.Equal, listid);
 
-            foreach (ListMember member in results.Entities)
+            listMembers = organizationServiceProxy.RetrieveMultiple(listMembersQuery);
+
+            contactsQuery.Criteria = new FilterExpression();
+            ConditionExpression condition = new ConditionExpression();
+            condition.AttributeName = "contactid";
+            condition.Operator = ConditionOperator.In;
+
+            foreach(ListMember member in listMembers.Entities)
             {
-                Contact contact;
-                if (allAttributes)
-                {
-                    contact = organizationServiceProxy.Retrieve("contact", member.EntityId.Id, new ColumnSet(true)).ToEntity<Contact>();
-                }
-                else
-                {
-                    contact = organizationServiceProxy.Retrieve("contact", member.EntityId.Id, new ColumnSet(new string[] { "firstname", "lastname", "emailaddress1", "mobilephone" })).ToEntity<Contact>();
-                }
-                contacts.Entities.Add(contact);
-                //contacts.Add(contact);
+                condition.Values.Add(member.EntityId.Id);
             }
+
+            contactsQuery.Criteria.AddCondition(condition);
+
+            contacts = organizationServiceProxy.RetrieveMultiple(contactsQuery);
 
             return contacts;
         }
 
-        public Dictionary<string,string> GetAttributeDisplayName(string entitySchemaName)
+        public Dictionary<string, string> GetAttributeDisplayName(string entitySchemaName)
         {
             var service = organizationServiceProxy;
             var req = new RetrieveEntityRequest();
+
             req.RetrieveAsIfPublished = true;
             req.LogicalName = entitySchemaName;
             req.EntityFilters = EntityFilters.Attributes;
@@ -136,6 +141,7 @@ namespace DynamicsIntegration.Controllers
                 {
                     var displayName = resp.EntityMetadata.Attributes.ToList()[iCnt].DisplayName.LocalizedLabels[0].Label;
                     var logicalName = resp.EntityMetadata.Attributes.ToList()[iCnt].LogicalName;
+
                     displayNames.Add(logicalName, displayName.ToString());
                 }
             }
